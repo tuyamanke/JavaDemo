@@ -1,2 +1,2 @@
 # JavaDemo
-Java practice demo.
+一些平时学习写的小样。
