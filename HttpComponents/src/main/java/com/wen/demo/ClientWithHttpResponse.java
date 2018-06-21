@@ -13,7 +13,7 @@ import java.io.IOException;
 
 /**
  * Created by wen on 2018/6/19
- *
+ * <p>
  * 测试自定义响应处理
  */
 public class ClientWithHttpResponse {
@@ -21,7 +21,7 @@ public class ClientWithHttpResponse {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
             HttpGet httpGet = new HttpGet("http://httpbin.org/");
-            System.out.println("以GET方式发送Http请求"+httpGet.getRequestLine());
+            System.out.println("以GET方式发送Http请求" + httpGet.getRequestLine());
             /**
              * 创建一个自定义的Http响应处理类，匿名内部类
              */
@@ -29,11 +29,11 @@ public class ClientWithHttpResponse {
                 @Override
                 public String handleResponse(HttpResponse httpResponse) throws ClientProtocolException, IOException {
                     int statusCode = httpResponse.getStatusLine().getStatusCode();
-                    if (statusCode >= 200 && statusCode <300){
+                    if (statusCode >= 200 && statusCode < 300) {
                         HttpEntity httpEntity = httpResponse.getEntity();
                         return httpEntity != null ? EntityUtils.toString(httpEntity) : null;
-                    }else {
-                        throw new ClientProtocolException("未知的Http响应状态码："+statusCode);
+                    } else {
+                        throw new ClientProtocolException("未知的Http响应状态码：" + statusCode);
                     }
                 }
             };

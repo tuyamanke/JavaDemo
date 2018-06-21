@@ -11,7 +11,7 @@ import java.io.InputStream;
 
 /**
  * Created by wen on 2018/6/19
- *
+ * <p>
  * 测试关闭连接
  */
 public class ClientConnectionRelease {
@@ -19,14 +19,14 @@ public class ClientConnectionRelease {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
             HttpGet httpGet = new HttpGet("http://httpbin.org/get");
-            System.out.println("以GET方式发送Http请求"+httpGet.getRequestLine());
+            System.out.println("以GET方式发送Http请求" + httpGet.getRequestLine());
             CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
             try {
                 System.out.println("----------------------------------------");
                 System.out.println(httpResponse.getStatusLine());
                 // 获取响应实体
                 HttpEntity entity = httpResponse.getEntity();
-                if (entity != null){
+                if (entity != null) {
                     InputStream inputStream = entity.getContent();
                     try {
                         inputStream.read();
