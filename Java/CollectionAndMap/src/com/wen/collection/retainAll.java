@@ -1,13 +1,15 @@
 package com.wen.collection;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by wen on 2018/7/7
  *
- * boolean removeAll(Collection b)：从调用该方法的集合中删除所有属于集合c的元素，相当于调用该方法的集合减集合c，如果删除了一个或一个以上的元素，则该方法返回true
+ * boolean retainAll(Collection c)：从调用该方法的集合对象中删除集合对象c里不包含的元素，若该操作改变了调用该方法的集合对象，则返回true
  */
-public class removeAll {
+public class retainAll {
     public static void main(String[] args) {
         List a = new ArrayList();
         List b = new ArrayList();
@@ -23,8 +25,8 @@ public class removeAll {
         b.add("worst");
         System.out.println("Collection a: " + a);
         System.out.println("Collection b: " + b);
-        //删除a中所有属于a且属于b的元素，判断是否属于用contains方法
-        a.removeAll(b);
-        System.out.println("Collection a after removeAll: " + a);
+        //删除a中所有属于a但不属于b的元素，判断是否属于用contains方法
+        a.retainAll(b);
+        System.out.println("Collection a after retainAll(b): " + a);
     }
 }
