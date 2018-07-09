@@ -1,4 +1,4 @@
-##集合相关类图
+## 集合相关类图
 
 Java的集合类主要由两个接口派生而出：Collection、Map，二者都在java.util包下。
 
