@@ -460,3 +460,4 @@ public final Map.Entry<K,V> next() { return nextNode(); }
 - 用for循环的forEach()的方式进行遍历
 
 后两类方法的实现还是用到了Iterator对象，每次循环都会比较modCount和expectedModCount是否相等，只不过没有hasNext()方法作为判断条件判断是否应该跳出循环，故不存在只移除集合对象倒数第二个元素不报java.util.ConcurrentModificationException异常的情况。
+
