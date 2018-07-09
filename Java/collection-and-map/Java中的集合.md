@@ -1,4 +1,4 @@
-##集合相关类图
+## 集合相关类图
 
 Java的集合类主要由两个接口派生而出：Collection、Map，二者都在java.util包下。
 
@@ -153,12 +153,25 @@ public class IterableTest {
     }
 
     /**
-     * 使用forEach方法遍历集合
+     * 使用集合对象的forEach()方法遍历集合，
+     * 该forEach()方法是实现的Iterable接口的抽象方法，但它的实现依然用了Iterator对象，依然会比较modCount和expectedModCount是否相等
+     * modCount和expectedModCount不想等就抛出java.util.ConcurrentModificationException异常
      */
     @Test
     public void forEachTest(){
-        a.forEach(obj -> System.out.print(obj + " "));
+        a.forEach(obj -> {
+            /**
+             * 因为每次循环都会比较modCount和expectedModCount是否相等，
+             * 所以不存在只移除倒数第二个元素不抛异常的问题，移除任何一个元素都会抛异常，因为没有hasNext()方法判断是否跳出循环
+             */
+            if ("better".equals(obj)){
+                a.remove("better");
+            }
+            System.out.println(obj);
+        });
+        System.out.println(a);
     }
+
 }
 ```
 
@@ -198,19 +211,84 @@ public class IteratorTest {
     public void iteratorTest(){
         //获取集合对象对应的迭代器
         Iterator iterator = a.iterator();
+        /**
+         * 因为例子中执行a.remove("better")或a.remove(str)后，移除了a的倒数第二个有效元素，
+         * 原来的倒数第一往前移了一位，占据了原来倒数第二的位置，致使原来倒数第一的位置不在size范围内了（不在有效范围内），
+         * 而此时iterator的cursor又正好指向原来倒数第一的首地址，故hasNext()方法返回false，跳出了循环，没有执行next()方法中对iterator的expectedModCount和a的modCount的比对，故没有抛出异常，
+         * 但显然没有输出原来的倒数第一，所以结果也不符合预期
+         */
         while(iterator.hasNext()){
             // iterator.next()返回的是Object类型，因此需要强制类型转换
             String str = (String) iterator.next();
             System.out.println(str);
             if ("better".equals(str)){
                 //从集合对象中删除上一次next方法返回的元素
-                iterator.remove();
+                //iterator.remove();
+                a.remove("better");
             }
             //对str变量赋值，不会改变集合对象的元素本身
             str = "bad";
         }
         System.out.println(a);
     }
+
+    /**
+     * 使用Iterator对象的forEachRemaining()方法遍历集合
+     */
+    @Test
+    public void forEachRemainingTest(){
+        //获取集合对象对应的迭代器
+        Iterator iterator = a.iterator();
+        iterator.forEachRemaining(obj -> {
+            /**
+             * 因为每次循环都会比较modCount和expectedModCount是否相等，
+             * 所以不存在只移除倒数第二个元素不抛异常的问题，移除任何一个元素都会抛异常，因为没有hasNext()方法判断是否跳出循环
+             */
+            if ("better".equals(obj)){
+                a.remove("better");
+            }
+            System.out.println(obj);
+        });
+    }
+
+    /**
+     * 使用集合对象的forEach()方法遍历集合，
+     * 该forEach()方法是实现的Iterable接口的抽象方法，但它的实现依然用了Iterator对象，依然会比较modCount和expectedModCount是否相等
+     * modCount和expectedModCount不想等就抛出java.util.ConcurrentModificationException异常
+     */
+    @Test
+    public void forEachTest(){
+        a.forEach(obj -> {
+            /**
+             * 因为每次循环都会比较modCount和expectedModCount是否相等，
+             * 所以不存在只移除倒数第二个元素不抛异常的问题，移除任何一个元素都会抛异常，因为没有hasNext()方法判断是否跳出循环
+             */
+            if ("better".equals(obj)){
+                a.remove("better");
+            }
+            System.out.println(obj);
+        });
+        System.out.println(a);
+    }
+
+    /**
+     * 使用for循环的forEach()方法，底层是用Iterator对象进行遍历的
+     */
+    @Test
+    public void forEachTest02(){
+        for (Object obj : a){
+            System.out.println(obj);
+            if ("better".equals(obj)){
+                /**
+                 * 下面代码可能会引发java.util.ConcurrentModificationException异常
+                 * 因为for循环的forEach()方法底层是用Iterator对象进行遍历的
+                 */
+                a.remove("better");
+            }
+        }
+        System.out.println(a);
+    }
+
 }
 ```
 
@@ -292,10 +370,11 @@ better
 
 ## Iterator和Iterable的异同
 
-- Iterable和Iterator都是接口；
+- Iterable和Iterator都是接口，二者没有继承关系；
 - Collection接口继承了Iterable接口，而没继承Iterator接口；
-- Iterable接口在java.lang包下，而Iterator接口在java.util包下（Collection和Map也在java.util包下）；
-- Iterable接口中有个iterator()方法可以产生Iterator类型的接口。
+- Iterable接口在java.lang包下，而Iterator接口在java.util包下；
+- Iterable接口中有个iterator()方法可以产生Iterator类型的接口；
+- Collection集合类实现了Iterable接口的方法，有很多方法在实现过程中使用了Iterator匿名内部类对象，如ArrayList中的forEach()、forEachRemaining()方法需要用Iterator匿名内部类对象的expectedModCount和ArrayList对象的modCount进行对比，不相等时抛出java.util.ConcurrentModificationException异常。
 
 问题来了：**Iterable接口中有个iterator()方法可以产生Iterator类型的接口？**
 
@@ -373,3 +452,11 @@ public final Map.Entry<K,V> next() { return nextNode(); }
 我们知道java.util.HashMap不是线程安全的，因此如果在使用迭代器的过程中有其他线程修改了HashMap对象，那么将抛出ConcurrentModificationException，这就是所谓Fail-Fast机制。这一机制在源码中的实现是通过modCount域，modCount顾名思义就是修改次数，对HashMap对象内容的修改将增加这个值，那么在迭代器初始化过程中会将这个值赋给迭代器的 expectedModCount。在迭代过程中，判断modCount跟expectedModCount是否相等，如果不相等就表示已经有其他线程修改了HashMap对象，注意到modCount声明为volatile，保证线程之间修改的可见性。
 
 所以在这里和大家建议，**当大家遍历那些非线程安全的数据结构时，尽量使用迭代器**。
+
+所以遍历Collection集合对象的方法：
+
+- 用Iterator对象的hasNext()、next()方法配合while循环遍历
+- 用Collection集合对象的forEach()、forEachRemaining()方法传入Lambda表达式遍历
+- 用for循环的forEach()的方式进行遍历
+
+后两类方法的实现还是用到了Iterator对象，每次循环都会比较modCount和expectedModCount是否相等，只不过没有hasNext()方法作为判断条件判断是否应该跳出循环，故不存在只移除集合对象倒数第二个元素不报java.util.ConcurrentModificationException异常的情况。
